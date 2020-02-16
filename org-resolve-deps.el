@@ -1,10 +1,23 @@
-* Org resolve deps
+;; Org resolve deps
 
-This package will walk all the include-statements of an org-mode file
-and temporarily replace them with the content of the files specified
-at tangling.
-#+begin_src emacs-lisp :noweb yes :tangle yes :comments org
-;; <<license>>
+;; This package will walk all the include-statements of an org-mode file
+;; and temporarily replace them with the content of the files specified
+;; at tangling.
+
+;; Copyright (C) 2020  Henrik Kjerringvåg
+;; 
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 (require 'org)
 
@@ -13,14 +26,13 @@ at tangling.
   :prefix "org-resolve-deps-"
   :group 'org
   :link '(url-link :tag "Github" "https://github.com/hkjels/org-resolve-deps"))
-#+end_src
 
-** Do you prefer ~org-resolve-deps~ over the original tangle functions?
+;; Do you prefer ~org-resolve-deps~ over the original tangle functions?
 
-By default, you will have to explicitly use org-resolve-deps tanling
-functions to tangle a project, but by setting ~org-resolve-deps-advice~
-to ~t~, the original ~org-babel~ tangling functions will be enhanced.
-#+begin_src emacs-lisp :tangle yes :comments org
+;; By default, you will have to explicitly use org-resolve-deps tanling
+;; functions to tangle a project, but by setting ~org-resolve-deps-advice~
+;; to ~t~, the original ~org-babel~ tangling functions will be enhanced.
+
 (defcustom org-resolve-deps-advice nil
   "Should include-statements be resolved when using the original
    org-babel tangling functions?"
@@ -28,25 +40,25 @@ to ~t~, the original ~org-babel~ tangling functions will be enhanced.
   :group 'org-resolve-deps)
 
 (defvar org-resolve-deps--tangle-cmd nil)
-#+end_src
 
-We create a temporary file named ~.org-resolve-deps.org~ to be able to
-tangle. This file can automatically be deleted after tangling, by
-setting ~org-resolve-deps-delete-temp-file~ to ~t~. Note that this can
-break whatever ~after-save~ hooks you might have, so it's advised to
-keep it's value negative.
-#+begin_src emacs-lisp :tangle yes :comments org
+
+
+;; We create a temporary file named ~.org-resolve-deps.org~ to be able to
+;; tangle. This file can automatically be deleted after tangling, by
+;; setting ~org-resolve-deps-delete-temp-file~ to ~t~. Note that this can
+;; break whatever ~after-save~ hooks you might have, so it's advised to
+;; keep it's value negative.
+
 (defcustom org-resolve-deps-delete-temp-file nil
   "Delete the temporary file made for tangling"
   :type '(boolean)
   :group 'org-resolve-deps)
-#+end_src
 
-** Resolve dependencies & tangle
+;; Resolve dependencies & tangle
 
-We need to check the ~:tangle~ argument and make it adhere to how we
-resolve dependencies.
-#+begin_src emacs-lisp :tangle yes :comments org
+;; We need to check the ~:tangle~ argument and make it adhere to how we
+;; resolve dependencies.
+
 (defun org-resolve-deps-header-tangle (str root file)
   "Ensure that the tangle argument uses the path specified
 If `:tangle` is set to `yes` it will use the current file as base.
@@ -68,13 +80,14 @@ relative to the file it's in."
                     out
                   (expand-file-name out (file-name-directory file))))))))
    str nil 'literal 1))
-#+end_src
 
-This is where the bulk of the heavy lifting happens. We walk the
-dependencies ("include statements") and replace them with the content
-of the files they point to. We also keep track of what files have been
-included to not end up with cyclic dependencies.
-#+begin_src emacs-lisp :tangle yes :comments org
+
+
+;; This is where the bulk of the heavy lifting happens. We walk the
+;; dependencies ("include statements") and replace them with the content
+;; of the files they point to. We also keep track of what files have been
+;; included to not end up with cyclic dependencies.
+
 (defun org-resolve-deps-of-file (root &optional file start files-included)
   "Recursively replace include-statements with the targeted content"
   (let* ((file (or file root))
@@ -96,13 +109,14 @@ included to not end up with cyclic dependencies.
             (replace-match (org-resolve-deps-header-tangle tree root path) nil 'literal)))
         (insert "\n")
         (buffer-string)))))
-#+end_src
 
-You call ~org-resolve-deps-tangle-file~ or ~org-resolve-deps-tangle~ just
-as you would call the original ~org-babel-tangle~ functions. If you
-supply any arguments, the call is just relayed to the original
-functions as ~org-resolve-deps~ only work on a per project level.
-#+begin_src emacs-lisp :tangle yes :comments org
+
+
+;; You call ~org-resolve-deps-tangle-file~ or ~org-resolve-deps-tangle~ just
+;; as you would call the original ~org-babel-tangle~ functions. If you
+;; supply any arguments, the call is just relayed to the original
+;; functions as ~org-resolve-deps~ only work on a per project level.
+
 (defun org-resolve-deps-tangle-file (file &optional target-file lang)
   "Tangle the specified file and all of it's includes"
   (interactive "P")
@@ -132,10 +146,11 @@ functions as ~org-resolve-deps~ only work on a per project level.
       (org-resolve-deps-tangle-file (buffer-file-name) target-file lang)
       (progn (message "`org-resolve-deps`: Falling back to using original `org-babel-tangle` function")
              (org-babel-tangle arg target-file lang))))
-#+end_src
 
-Here we choose which functions to apply based on the value of ~org-resolve-deps-advice~.
-#+begin_src emacs-lisp :tangle yes :comments org
+
+
+;; Here we choose which functions to apply based on the value of ~org-resolve-deps-advice~.
+
 (define-minor-mode org-resolve-deps-mode
   "Resolve includes before tangling"
   nil
@@ -155,33 +170,5 @@ Here we choose which functions to apply based on the value of ~org-resolve-deps-
                          (if org-resolve-deps-advice
                              (apply #'org-resolve-deps-tangle-file args)
                            (apply cmd args)))))))
-#+end_src
 
-#+begin_src emacs-lisp :tangle yes :comments org
 (provide 'org-resolve-deps)
-#+end_src
-
-* License
-
-#+name: year
-#+begin_src shell :exports none
-date +'%Y'
-#+end_src
-
-#+name: license
-#+begin_src text :tangle LICENSE.txt :noweb yes
-    Copyright (C) <<year()>>  Henrik Kjerringvåg
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#+end_src

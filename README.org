@@ -1,9 +1,5 @@
 * Org resolve deps
 
-*Fair warning!* This package is not yet in a working state, but the idea
-is that commit ~#2~ will be, so add it to you're watch list and you'll
-be notified.
-
 This package will walk all the include-statements of an org-mode file
 and temporarily replace them with the content of the files specified
 when tangling.
@@ -14,15 +10,16 @@ You will need to have the package on your ~load-path~. And do something
 akin to:
 #+begin_src emacs-lisp :exports code
 (require 'org-resolve-deps)
-(setq org-resolve-deps-advice t)
 (org-resolve-deps-mode t)
 #+end_src
-That way, when you tangle as usual; includes will be resolved. If you
-don't want to override the default tangling-functions of org-mode, you
-can use ~org-resolve-deps-tangle~ command explicitly and leave out the
-~org-resolve-deps-advice~ variable above.
+At this point, you can now execute the command ~org-resolve-deps-tangle~
+from you're root org-mode file.
+
+*Fair warning!* This is a work in progress, so there are kinks. ATM, the
+advice around the original tangling functions fail and should not be
+used.
 
 ** License
 
-Copyright © 2020  Henrik Kjerringvåg
+Copyright © 2020  Henrik Kjerringvåg \\
 Distributed under the GNU General Public License, version 3
